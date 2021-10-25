@@ -9,6 +9,7 @@ from webdriver import WebDriver
 # Website class
 class ItDashboard(WebDriver):
 
+    # Scrap agencies names and spent amounts
     def get_agencies_names_and_amounts(self):
         self.browser.go_to(
             url='https://itdashboard.gov/',
@@ -30,6 +31,7 @@ class ItDashboard(WebDriver):
 
         return agencies_amount_table
 
+    # Get the full table
     def get_table_data(self):
         agencie_url = self.get_agencie_url(
             agencie_name=settings.AGENCIE_TO_GET_DATA_FROM,
@@ -58,7 +60,7 @@ class ItDashboard(WebDriver):
         )
 
         return agencie_table
-
+    # Download all pdf files
     def get_pdf_files(self):
         pdf_links = self.get_UII_links(
             link_locator='xpath://*[@id="investments-table-object"]/tbody/tr/td[1]/a',
@@ -71,6 +73,7 @@ class ItDashboard(WebDriver):
             pdf_locator='//*[@id="business-case-pdf"]',
         )
 
+    # Write data to Excel
     def write_to_excel(self):
         agencies_amounts = self.get_agencies_names_and_amounts()
         agencie_table = self.get_table_data()
@@ -81,7 +84,7 @@ class ItDashboard(WebDriver):
             agencies_amounts.to_excel(write, sheet_name='Agencies')
             agencie_table.to_excel(write, sheet_name=f'{settings.AGENCIE_TO_GET_DATA_FROM}')
 
-
+# Define main() function, set correct order
 def main():
     obj = ItDashboard()
     obj.open_web_browser()
@@ -90,7 +93,7 @@ def main():
     obj.close_all_browsers()
 
 
-# Call the main() function, checking that we are running as a stand-alone script:
+# Call the main() function:
 if __name__ == "__main__":
     main()
 
