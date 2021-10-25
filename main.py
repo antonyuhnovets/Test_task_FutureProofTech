@@ -1,16 +1,16 @@
 import time
-import settings
 import pandas as pd
+
+import settings
 
 from webdriver import WebDriver
 
 
-# Define a main() function that calls the other functions in order:
+# Website class
 class ItDashboard(WebDriver):
 
-    
     def get_agencies_names_and_amounts(self):
-        self.open_the_website(
+        self.browser.go_to(
             url='https://itdashboard.gov/',
         )
 
@@ -18,13 +18,14 @@ class ItDashboard(WebDriver):
             locator_value='//*[@id="node-23"]/div/div/div/div/div/div/div/a',
         )
 
-        #TODO: wait untill page loaded
-        time.sleep(15)
+        while not self.browser.is_element_visible(locator='//*[@id="agency-tiles-widget"]/div'):
+            time.sleep(1)
 
         agencies_amount_table = self.search_for_agencies_and_amount(
-            container_locator='//*[@id="agency-tiles-container"]',
-            agencie_locator_value='xpath://div[contains(@class,"wrapper")]//div[contains(@class, "col-sm-12")]//span[1]',
-            amount_locator_value='xpath://div[contains(@class,"wrapper")]//div[contains(@class, "col-sm-12")]//span[2]',
+            agencie_locator_value='xpath://div[contains(@class,"wrapper")]//div[contains(@class, '
+                                  '"col-sm-12")]//span[1]',
+            amount_locator_value='xpath://div[contains(@class,"wrapper")]//div[contains(@class, '
+                                 '"col-sm-12")]//span[2]',
         )
 
         return agencies_amount_table
@@ -34,21 +35,25 @@ class ItDashboard(WebDriver):
             agencie_name=settings.AGENCIE_TO_GET_DATA_FROM,
         )
 
-        self.go_to(
+        self.browser.go_to(
             url=agencie_url[1].get_attribute('href'),
         )
-        #TODO: wait untill page loads
-        time.sleep(15)
+
+        while not self.browser.is_element_visible(locator='//*[@id="investments-table-object"]'):
+            time.sleep(1)
 
         self.set_table_view(
             value_locator='//*[@id="investments-table-object_length"]/label/select',
             key='All',
         )
-        #TODO: wait untill table loads
-        time.sleep(20)
+
+        while self.browser.is_element_visible(locator='//*[@id="investments-table-object_paginate'
+                                                      '"]/span/a[2]'):
+            time.sleep(1)
 
         agencie_table = self.get_table(
-            column_names_locator='//*[@id="investments-table-object_wrapper"]/div[3]/div[1]/div/table/thead/tr[2]/th',
+            column_names_locator='//*[@id="investments-table-object_wrapper"]/div[3]/div['
+                                 '1]/div/table/thead/tr[2]/th',
             rows_locator='//*[@id="investments-table-object"]/tbody/tr',
         )
 
@@ -63,6 +68,7 @@ class ItDashboard(WebDriver):
 
         self.download_pdf(
             link_list=pdf_links,
+            pdf_locator='//*[@id="business-case-pdf"]',
         )
 
     def write_to_excel(self):
@@ -76,13 +82,17 @@ class ItDashboard(WebDriver):
             agencie_table.to_excel(write, sheet_name=f'{settings.AGENCIE_TO_GET_DATA_FROM}')
 
 
+def main():
+    obj = ItDashboard()
+    obj.open_web_browser()
+    obj.write_to_excel()
+    obj.get_pdf_files()
+    obj.close_all_browsers()
+
+
 # Call the main() function, checking that we are running as a stand-alone script:
 if __name__ == "__main__":
-    try:
-        obj = ItDashboard()
-        obj.write_to_excel()
-        obj.get_pdf_files()
-    finally:
-        obj.close_all_browsers()
+    main()
+
 
 
